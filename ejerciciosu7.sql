@@ -343,7 +343,7 @@ SELECT fn_sala_libre(1, '2025-12-01');
 -- 3. 
 -- Implementa una función con nombre fn_cliente_premium que reciba la clave de un cliente y devuelva 1 
 -- en caso de considerarse cliente premium o 0 en caso contrario. Se considera cliente premium aquel cliente que ha
--- gastadi más de 150 euros en citas que tiene más de 2 mascotas.
+-- gastado más de 150 euros en citas que tiene más de 2 mascotas.
 DELIMITER //
 DROP FUNCTION IF EXISTS fn_cliente_premium //
 CREATE FUNCTION fn_cliente_premium(cliente_id INT)
@@ -353,16 +353,16 @@ BEGIN
     DECLARE total_gastado DECIMAL(10,2);
     DECLARE num_mascotas INT;
     
-    SELECT SUM(precio), COUNT(DISTINCT numero)
+    SELECT SUM(precio), COUNT(DISTINCT numero_mascota)  -- se cuentan la suma de todo lo gastado en cada mascota y todos las mascotas diferentes
     INTO total_gastado, num_mascotas
     FROM atiende
     WHERE id_cliente = cliente_id;
     
-    RETURN IF(total_gastado > 150 AND num_mascotas > 2, 1, 0);
+    RETURN IF(total_gastado > 150 AND num_mascotas > 2, 1, 0); -- expliación arriba del return if
 END //
 DELIMITER ;
-
-SELECT fn_cliente_premium(1);
+select * from atiende;
+SELECT fn_cliente_premium(1); -- solo he habilitado el 1 (que es el único en el que 3 mascotas (más de 2) han sido atendidas )
 
 
 
@@ -468,9 +468,6 @@ DELIMITER ;
 
 CALL sp_get_ingresos_veterinario('00000A', '2025-01-01', '2025-12-31', @ingresos, @mensaje);
 SELECT @ingresos, @mensaje;
-
-
-
 
 
 
