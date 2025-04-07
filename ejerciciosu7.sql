@@ -84,16 +84,17 @@ BEGIN
 	declare v_resultado int default 1;
     declare v_i int default 1;
 
+
     bucle:loop
 		if v_i > num then
 			leave  bucle;
 		end if;
         
-        set v_resultado = v_resultado * i;
+        set v_resultado = v_resultado * v_i;
         set v_i = v_i + 1;
 	end loop;
     
-	return resultado;
+	return v_resultado;
 End //
 DELIMITER ;
 
@@ -158,6 +159,13 @@ SELECT fn_factorial_while(5);
 
 
 
+
+
+
+
+
+
+
 -- Procedimientos
 -- 1
 -- Implementa un procedimiento almacenado llamado sp_get_intercambia que reciba los valores numericos enteros
@@ -200,7 +208,7 @@ BEGIN
                     WHEN nota BETWEEN 9 AND 10 THEN 'Sobresaliente'
                     WHEN nota = 11 THEN 'Matricula de Honor'
                     WHEN nota IS NULL THEN NULL
-                    ELSE 'cadena vacía'
+                    ELSE ''
                     END;
 END //
 DELIMITER ;
@@ -269,6 +277,8 @@ BEGIN
         SET i = i + 1;
     END WHILE;   
     
+    -- con  replace sería  SET  resultado = REPLACE(texto, ' '. ''); reemplaza los espacios con cadenas vacías (de la variable texto)
+    
 END //
 DELIMITER ;
 
@@ -290,19 +300,21 @@ SELECT @resultado;
 DELIMITER //
 DROP FUNCTION IF EXISTS fn_existe_cliente_mascota //
 CREATE FUNCTION fn_existe_cliente_mascota(cliente_id INT, mascota_nombre VARCHAR(50))
-RETURNS INT
+RETURNS VARCHAR(10) -- int era antes
 DETERMINISTIC
 BEGIN
     DECLARE resultado INT;
-    SET mascota_nombre = TRIM(mascota_nombre);
+    SET mascota_nombre = TRIM(mascota_nombre); -- quita todos los espacios (delante y detrás del texto) por defecto y también. trim ('# ' FROM '   Ho#l a      '); -> 'Hol a'
+    
     SELECT COUNT(*) INTO resultado
     FROM mascota
-    WHERE id_cliente = cliente_id AND TRIM(nombre) = mascota_nombre;
-    RETURN IF(resultado > 0, 1, 0);
+    WHERE id_cliente = cliente_id AND TRIM(nombre) = mascota_nombre; -- la variable id_cliente es la que se pasa, y cliente_id es de la tabla mascota
+    
+    RETURN IF(resultado > 0, 1, '='); -- devuelve 1 si se cumple la condición (mayor a 0), en caso contrario se devuelve 21
 END //
 DELIMITER ;
 
-SELECT fn_existe_cliente_mascota(1, 'Toby');
+SELECT fn_existe_cliente_mascota(1, '                    Toby                         '); -- funciona, quita todos los espacios
 
 
 
@@ -456,6 +468,8 @@ DELIMITER ;
 
 CALL sp_get_ingresos_veterinario('00000A', '2025-01-01', '2025-12-31', @ingresos, @mensaje);
 SELECT @ingresos, @mensaje;
+
+
 
 
 
