@@ -1,5 +1,7 @@
 use ud7_clinica_veterinaria;
 
+-- Ejercicio 10
+
 -- Funciones ---------------------------------------------------------------------------------
 -- 1
 -- Implementa una funcion con nombre fn_area_circulo que reciba el radio de un circulo y devuelva su area.
@@ -287,20 +289,30 @@ SELECT @resultado;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
   
 
-
+-- Ejercicios 11
 
 -- Parte 1: funciones
 -- 1.
 -- Implementa una función con nombre fn_existe_cliente_mascota que reciba la clave del cliente y el nombre de la mascota. 
 -- Devolverá = si ese cliente no tiene ninguna mascota con ese nombre y 1 en caso contrario. 
 -- Contempla la posibilidad de que reciba un nombre con espacios al princio o final del texto.
-
 DELIMITER //
 DROP FUNCTION IF EXISTS fn_existe_cliente_mascota //
 CREATE FUNCTION fn_existe_cliente_mascota(cliente_id INT, mascota_nombre VARCHAR(50))
-RETURNS VARCHAR(10) -- int era antes
+RETURNS VARCHAR(10) -- int era antes, pero como se quiere devolver un = a parte de otros números se debe returnear un varchar
 DETERMINISTIC
 BEGIN
     DECLARE resultado INT;
@@ -330,14 +342,17 @@ RETURNS INT
 DETERMINISTIC
 BEGIN
     DECLARE resultado INT;
+    
     SELECT COUNT(*) INTO resultado
     FROM atiende
     WHERE numero_sala = sala_numero AND fecha_cita = fecha;
-    RETURN IF(resultado > 0, 0, 1);
+    
+    RETURN IF(resultado > 0, 0, 1); -- si no hay citas se devuelve 1, si se cumple la condición se devuelve 0
 END //
 DELIMITER ;
-
-SELECT fn_sala_libre(1, '2025-12-01');
+select * from atiende;
+SELECT fn_sala_libre(1, '2025-12-01'); -- en este dia para esta sala no hay cita, devuelve 1
+SELECT fn_sala_libre(1, '2025-02-01'); -- en este dia si hay cita, devuuelve 0
 
 
 -- 3. 
@@ -373,6 +388,9 @@ SELECT fn_cliente_premium(1); -- solo he habilitado el 1 (que es el único en el
 
 
 
+
+
+
 -- Parte 2: Procedimientos
 -- 1.
 -- Implementa un procedimiento almacenado llamado sp_get_ocupacion_salas_anyo que recibe un parámetro 
@@ -381,16 +399,16 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS sp_get_ocupacion_salas_anyo //
 CREATE PROCEDURE sp_get_ocupacion_salas_anyo(anio INT, OUT ocupacion_sala1 INT, OUT ocupacion_sala2 INT, OUT ocupacion_sala3 INT, OUT ocupacion_sala4 INT)
 BEGIN
-    SELECT 
-        (SELECT COUNT(*) FROM atiende WHERE numero_sala = 1 AND YEAR(fecha_cita) = anio) INTO ocupacion_sala1,
-		(SELECT COUNT(*) FROM atiende WHERE numero_sala = 2 AND YEAR(fecha_cita) = anio) INTO ocupacion_sala2,
-        (SELECT COUNT(*) FROM atiende WHERE numero_sala = 3 AND YEAR(fecha_cita) = anio) INTO ocupacion_sala3,
-        (SELECT COUNT(*) FROM atiende WHERE numero_sala = 4 AND YEAR(fecha_cita) = anio) INTO ocupacion_sala4;
+        SELECT COUNT(*) FROM atiende WHERE numero_sala = 1 AND YEAR(fecha_cita) = anio INTO ocupacion_sala1;
+        SELECT COUNT(*) FROM atiende WHERE numero_sala = 2 AND YEAR(fecha_cita) = anio INTO ocupacion_sala2;
+        SELECT COUNT(*) FROM atiende WHERE numero_sala = 3 AND YEAR(fecha_cita) = anio INTO ocupacion_sala3;
+        SELECT COUNT(*) FROM atiende WHERE numero_sala = 4 AND YEAR(fecha_cita) = anio INTO ocupacion_sala4;
 END //
 DELIMITER ;
 
+
 CALL sp_get_ocupacion_salas_anyo(2025, @ocupacion_sala1, @ocupacion_sala2, @ocupacion_sala3, @ocupacion_sala4);
-SELECT @ocupacion_sala1, @ocupacion_sala2, @ocupacion_sala3, @ocupacion_sala4;
+SELECT @ocupacion_sala1 as ncitasSala1, @ocupacion_sala2 as ncitasSala2, @ocupacion_sala3 as ncitasSala3, @ocupacion_sala4 as ncitasSala4;
 
 
 
@@ -414,12 +432,12 @@ BEGIN
     IF nombre_mascota IS NULL THEN
         SET mensaje = 'No se especificó un nombre de mascota.';
     ELSE
-        SELECT COUNT(*) INTO @num_clientes
+        SELECT COUNT(*) INTO @num_mascotas
         FROM mascota m
         JOIN cliente c ON c.id = m.id_cliente
         WHERE m.nombre = nombre_mascota;
         
-        IF @num_clientes = 0 THEN
+        IF @num_mascotas = 0 THEN
             SET mensaje = CONCAT('No existe ningún cliente con una mascota con nombre: ', nombre_mascota);
         ELSE
             SET mensaje = CONCAT(@num_clientes, ' clientes tienen una mascota con el nombre: ', nombre_mascota);
@@ -468,6 +486,44 @@ DELIMITER ;
 
 CALL sp_get_ingresos_veterinario('00000A', '2025-01-01', '2025-12-31', @ingresos, @mensaje);
 SELECT @ingresos, @mensaje;
+
+
+
+
+
+
+
+
+
+
+
+-- ejercicios 12
+-- Parte 1: SQL Dinámico
+-- 1. En el apartado dedicado al SQL dinámico hemos desarrollado un procedimiento almacenado llamado 
+-- sp_ins_veterinario que, empleando prepared statement, realiza la inserción de un veterinario y 
+-- devuelve en un parámetro de salida el id asignado automáticamente. Si analizas lo que hace ese procedimiento 
+-- te darás cuenta que se podría haber realizado sin emplear prepared statements.
+-- Deberás implementar un procedimiento llamado sp_ins_veterinario_sin_sql_dinamico
+-- que haga lo mismo que el anterior procedimiento pero sin prepared statement .
+
+
+
+
+
+-- 2. Crea un procedimiento llamado sp_ins_cliente que, empleando prepared statement , 
+-- inserte un cliente en la base de datos. Recibirá como parámetros de
+-- entrada los campos necesarios para realizar el alta del cliente. Un parámetro de salida
+-- devolverá el id asignado al cliente después de la inserción. Comprueba que funciona y devuelve el id correcto.
+
+
+
+
+
+-- 3. Crea un procedimiento llamado sp_get_campo_de_tabla que recibe dos parámetros de
+-- entrada con el nombre de una tabla de la base de datos y uno de sus campos. Devolverá
+--  una SELECT de todas las filas de ese campo.
+
+
 
 
 
