@@ -509,10 +509,10 @@ SELECT @ingresos, @mensaje;
 DELIMITER //
 DROP PROCEDURE IF EXISTS sp_ins_veterinario //
 CREATE PROCEDURE sp_ins_veterinario(
-    IN nombre VARCHAR(50),
-    IN apellidos VARCHAR(100),
     IN dni VARCHAR(9),
+    IN nombre VARCHAR(50),
     IN telefono VARCHAR(15),
+    IN autonomo TINYINT,
     IN fecha_incorporacion date,
     OUT id_generado INT
 )
@@ -522,13 +522,13 @@ BEGIN
 	SET @stmtinsvet = 'INSERT INTO veterinario VALUES(NULL, ?, ?, ?, ?, ?)';
 	PREPARE stmt FROM @stmtinsvet;
     
+	SET @dni = dni;
     SET @n = nombre;
-    SET @a = apellidos;
-    SET @dni = dni;
     SET @tel = telefono;
+    SET @a = autonomo;
     SET @fi = fecha_incorporacion;
     
-    EXECUTE stmt using @n, @a, @dni, @tel, @fi;
+    EXECUTE stmt using @dni, @n, @tel, @a, @fi;
     
 	SET id_generado = LAST_INSERT_ID(); -- esto va antes del deallocate
 
@@ -538,7 +538,7 @@ BEGIN
 END //
 DELIMITER ;
 
-call sp_ins_veterinario('12345F', 'Ahinara Lucas', 21123389, 0, '2025-01-01', @idgen);
+call sp_ins_veterinario('12345G', 'Ahinara Lucas', 21123389, 0, '2025-01-01', @idgen);
 SELECT @idgen;
 SELECT * from veterinario;
 
@@ -549,7 +549,7 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS sp_ins_veterinario_sin_sql_dinamico //
 CREATE PROCEDURE sp_ins_veterinario_sin_sql_dinamico(
     IN vnombre VARCHAR(50),
-    IN vdni VARCHAR(8),
+    IN vdni VARCHAR(10),
     IN vtelefono VARCHAR(50),
 	IN vautonomo tinyint,
     IN vfecha_incorporacion date,
@@ -574,15 +574,38 @@ SELECT * from veterinario;
 
 
 
-
- 
-
-
-
 -- 2. Crea un procedimiento llamado sp_ins_cliente que, empleando prepared statement , 
 -- inserte un cliente en la base de datos. Recibirá como parámetros de
 -- entrada los campos necesarios para realizar el alta del cliente. Un parámetro de salida
 -- devolverá el id asignado al cliente después de la inserción. Comprueba que funciona y devuelve el id correcto.
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_ins_cliente //
+CREATE PROCEDURE sp_ins_cliente(
+    IN nombre VARCHAR(50),
+    IN direccion VARCHAR(100),
+    IN telefono VARCHAR(50),
+    IN email VARCHAR(100),
+    OUT id_generado INT
+)
+BEGIN
+
+    SET @sql_insert = 'INSERT INTO cliente(nombre, direccion, telefono, email) VALUES (?, ?, ?, ?)';
+    SET @n = nombre;
+	SET @d = direccion;
+    SET @tel = telefono;
+    SET @e = email;
+    
+    PREPARE stmt FROM @sql_insert;
+    EXECUTE stmt USING @n, @d, @tel, @e;
+    DEALLOCATE PREPARE stmt;
+
+    SET id_generado = LAST_INSERT_ID();
+END //
+DELIMITER ;
+
+SELECT * from cliente;
+call sp_ins_cliente('Gloria Fuertes', 'Orihuela 144', 777777777, 'gloriafuert@gloria.com', @id);
+select @id;
 
 
 
@@ -591,14 +614,19 @@ SELECT * from veterinario;
 -- 3. Crea un procedimiento llamado sp_get_campo_de_tabla que recibe dos parámetros de
 -- entrada con el nombre de una tabla de la base de datos y uno de sus campos. Devolverá
 --  una SELECT de todas las filas de ese campo.
-
-
-
-
-
-
-
-
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_get_campo_de_tabla //
+CREATE PROCEDURE sp_get_campo_de_tabla(
+    IN tabla VARCHAR(50),
+    IN campo VARCHAR(50)
+)
+BEGIN
+    SET @sql = CONCAT('SELECT ', campo, ' FROM ', tabla);
+    PREPARE stmt FROM @sql;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END //
+DELIMITER ;
 
 
 
