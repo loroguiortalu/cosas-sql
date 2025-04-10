@@ -29,11 +29,11 @@ CREATE FUNCTION fn_hipotenusa (cateto1 DECIMAL(10,2), cateto2 DECIMAL(10,2))
 RETURNS DECIMAL(10,2)
 DETERMINISTIC
 BEGIN 
-	RETURN sqrt(pow(cateto1, 2)+ pow(cateto1, 2))  ;-- pow sirve para elevar algo por si mismo
+	RETURN sqrt(pow(cateto1, 2)+ pow(cateto2, 2))  ;-- pow sirve para elevar algo por si mismo
 END //
 DELIMITER ;
 
-select fn_hipotenusa(5,2);
+select fn_hipotenusa(4,99);
 
 
 
@@ -268,12 +268,12 @@ DROP PROCEDURE IF EXISTS sp_get_elimina_espacios //
 CREATE PROCEDURE sp_get_elimina_espacios(IN texto VARCHAR(255), OUT resultado VARCHAR(255))
 BEGIN
 	DECLARE i INT DEFAULT 1;
-    DECLARE letra CHAR(1);
+    DECLARE letra VARCHAR(1); -- CHAR(1);
 	set resultado = '';
     
     WHILE i <= LENGTH(texto) DO
         SET letra = SUBSTRING(texto, i, 1);
-        IF letra != '' THEN
+        IF letra != ' ' THEN -- si fuera un char esto sería ''
             set resultado = concat(resultado, letra);
         END IF;
         SET i = i + 1;
@@ -284,7 +284,7 @@ BEGIN
 END //
 DELIMITER ;
 
-CALL sp_get_elimina_espacios('Hola   Mun 5 7  do', @resultado);
+CALL sp_get_elimina_espacios(' Hola   Mun 5 7  do', @resultado);
 SELECT @resultado;
 
 
@@ -506,7 +506,76 @@ SELECT @ingresos, @mensaje;
 -- Deberás implementar un procedimiento llamado sp_ins_veterinario_sin_sql_dinamico
 -- que haga lo mismo que el anterior procedimiento pero sin prepared statement .
 
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_ins_veterinario //
+CREATE PROCEDURE sp_ins_veterinario(
+    IN nombre VARCHAR(50),
+    IN apellidos VARCHAR(100),
+    IN dni VARCHAR(9),
+    IN telefono VARCHAR(15),
+    IN fecha_incorporacion date,
+    OUT id_generado INT
+)
+BEGIN
+	
 
+	SET @stmtinsvet = 'INSERT INTO veterinario VALUES(NULL, ?, ?, ?, ?, ?)';
+	PREPARE stmt FROM @stmtinsvet;
+    
+    SET @n = nombre;
+    SET @a = apellidos;
+    SET @dni = dni;
+    SET @tel = telefono;
+    SET @fi = fecha_incorporacion;
+    
+    EXECUTE stmt using @n, @a, @dni, @tel, @fi;
+    
+	SET id_generado = LAST_INSERT_ID(); -- esto va antes del deallocate
+
+    
+    deallocate prepare stmt;
+
+END //
+DELIMITER ;
+
+call sp_ins_veterinario('12345F', 'Ahinara Lucas', 21123389, 0, '2025-01-01', @idgen);
+SELECT @idgen;
+SELECT * from veterinario;
+
+
+
+-- versión sin sql dinámico
+DELIMITER //
+DROP PROCEDURE IF EXISTS sp_ins_veterinario_sin_sql_dinamico //
+CREATE PROCEDURE sp_ins_veterinario_sin_sql_dinamico(
+    IN vnombre VARCHAR(50),
+    IN vdni VARCHAR(8),
+    IN vtelefono VARCHAR(50),
+	IN vautonomo tinyint,
+    IN vfecha_incorporacion date,
+    OUT id_generado INT
+)
+BEGIN
+    INSERT INTO veterinario(nombre, DNI, telefono, autonomo, fecha_incorporacion)
+    VALUES (vnombre, vdni, vtelefono, vautonomo, vfecha_incorporacion);
+
+    SET id_generado = LAST_INSERT_ID();
+END //
+DELIMITER ;
+
+call sp_ins_veterinario_sin_sql_dinamico( 'Lucas Lucky','12345H', 673222109, 1, '2025-11-24', @idgen);
+SELECT @idgen;
+SELECT * from veterinario;
+
+
+
+
+
+
+
+
+
+ 
 
 
 
@@ -522,6 +591,12 @@ SELECT @ingresos, @mensaje;
 -- 3. Crea un procedimiento llamado sp_get_campo_de_tabla que recibe dos parámetros de
 -- entrada con el nombre de una tabla de la base de datos y uno de sus campos. Devolverá
 --  una SELECT de todas las filas de ese campo.
+
+
+
+
+
+
 
 
 
